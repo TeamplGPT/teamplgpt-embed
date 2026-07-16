@@ -1,5 +1,9 @@
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { v4 } from "uuid";
+import {
+  handleClientToolRequest,
+  CLIENT_TOOL_EVENT_TYPE,
+} from "@/utils/clientTools";
 
 const ChatService = {
   embedSessionHistory: async function (embedSettings, sessionId) {
@@ -87,6 +91,12 @@ const ChatService = {
       async onmessage(msg) {
         try {
           const chatResult = JSON.parse(msg.data);
+          // R1 클라이언트 실행 위임: 부모 브리지 왕복 후 서버 회신.
+          // 채팅 UI에는 표시하지 않는다 (handleChat은 unknown type 무시하지만 명시 분기).
+          if (chatResult.type === CLIENT_TOOL_EVENT_TYPE) {
+            handleClientToolRequest(chatResult, embedSettings, sessionId);
+            return;
+          }
           handleChat(chatResult);
         } catch {}
       },
