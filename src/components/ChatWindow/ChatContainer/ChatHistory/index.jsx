@@ -1,3 +1,4 @@
+import AnythingLLMIcon from "@/assets/anything-llm-icon.svg";
 import HistoricalMessage from "./HistoricalMessage";
 import PromptReply from "./PromptReply";
 import { useEffect, useRef, useState } from "react";
@@ -47,14 +48,12 @@ export default function ChatHistory({ settings = {}, history = [] }) {
   };
 
   if (history.length === 0) {
+    // 인사말은 위, 예시 질문은 아래로 갈라 놓는다. 둘 다 가운데 모으면 600px 창에서
+    // 위아래가 텅 비고, 예시 질문도 입력창에서 멀어져 누르기 번거롭다.
     return (
-      <div className="allm-h-full allm-overflow-y-auto allm-px-2 allm-py-4 allm-flex allm-flex-col allm-justify-start allm-no-scroll">
-        <div className="allm-flex allm-h-full allm-flex-col allm-items-center allm-justify-center">
-          <p className="allm-text-slate-400 allm-text-sm allm-font-sans allm-py-4 allm-text-center">
-            {settings?.greeting ?? "Send a chat to get started."}
-          </p>
-          <SuggestedMessages settings={settings} />
-        </div>
+      <div className="allm-h-full allm-overflow-y-auto allm-px-2 allm-py-4 allm-flex allm-flex-col allm-justify-between allm-gap-y-4 allm-no-scroll">
+        <GreetingMessage settings={settings} />
+        <SuggestedMessages settings={settings} />
       </div>
     );
   }
@@ -136,19 +135,60 @@ export function ChatHistoryLoading() {
   );
 }
 
+/**
+ * 대화 시작 전 인사말. 회색 가운데 정렬 문단이던 것을 어시스턴트 말풍선으로 바꿨다.
+ * 첫 화면이 곧 "상담원이 먼저 말을 건 상태"로 읽혀야 무엇을 하는 창인지 전달된다.
+ * 실제 답변과 같은 아이콘·같은 말풍선 스타일을 쓴다 — 여기서만 다르면 첫 답변이
+ * 오는 순간 모양이 튄다.
+ */
+function GreetingMessage({ settings }) {
+  const greeting = settings?.greeting ?? "Send a chat to get started.";
+  return (
+    <div className="allm-flex allm-items-start allm-w-full allm-h-fit">
+      <img
+        src={embedderSettings.settings.assistantIcon || AnythingLLMIcon}
+        alt=""
+        className="allm-w-9 allm-h-9 allm-flex-shrink-0 allm-ml-2"
+      />
+      <div
+        style={{
+          wordBreak: "break-word",
+          backgroundColor: embedderSettings.ASSISTANT_STYLES.msgBg,
+          fontSize: settings.textSize,
+        }}
+        className={`allm-py-[11px] allm-px-4 allm-flex allm-flex-col allm-font-sans allm-text-left ${embedderSettings.ASSISTANT_STYLES.base} allm-shadow-[0_2px_10px_rgba(30,41,59,0.07)]`}
+      >
+        {greeting}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 예시 질문. 종전에는 폭 75%짜리 진한 블록 버튼이라 말풍선처럼 보여서 "이미 대화가
+ * 오간 화면"으로 오해됐고, 그래서 호스트(notion-cms)가 이 기능을 아예 껐다.
+ *
+ * 눌러서 보내는 것이므로 말풍선이 아니라 **칩**이어야 한다 — 내용 길이만큼만 차지하고,
+ * 테두리로 눌리는 것임을 알리고, 색은 강조색을 옅게만 쓴다.
+ */
 function SuggestedMessages({ settings }) {
   if (!settings?.defaultMessages?.length) return null;
+  const accent = settings.buttonColor || "#0EA5E9";
 
   return (
-    <div className="allm-flex allm-flex-col allm-gap-y-2 allm-w-[75%]">
+    <div className="allm-flex allm-flex-wrap allm-gap-2 allm-justify-end allm-px-2">
       {settings.defaultMessages.map((content, i) => (
         <button
           key={i}
           style={{
             opacity: 0,
+            animationDelay: `${i * 60}ms`,
             wordBreak: "break-word",
-            backgroundColor: embedderSettings.USER_STYLES.msgBg,
-            fontSize: settings.textSize,
+            color: accent,
+            borderColor: `${accent}59`,
+            fontSize: settings.textSize
+              ? `${Math.max(12, Number(settings.textSize) - 2)}px`
+              : undefined,
           }}
           type="button"
           onClick={() => {
@@ -156,7 +196,7 @@ function SuggestedMessages({ settings }) {
               new CustomEvent(SEND_TEXT_EVENT, { detail: { command: content } })
             );
           }}
-          className={`msg-suggestion allm-border-none hover:allm-shadow-[0_4px_14px_rgba(0,0,0,0.5)] allm-cursor-pointer allm-px-2 allm-py-2 allm-rounded-lg allm-text-white allm-w-full allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)]`}
+          className="msg-suggestion allm-bg-white allm-border allm-border-solid hover:allm-bg-slate-50 allm-cursor-pointer allm-px-3 allm-py-[7px] allm-rounded-full allm-font-sans allm-leading-tight allm-transition-colors"
         >
           {content}
         </button>

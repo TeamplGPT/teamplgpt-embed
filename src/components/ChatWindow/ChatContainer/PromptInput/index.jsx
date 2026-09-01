@@ -13,7 +13,9 @@ export default function PromptInput({
   const { t } = useTranslation();
   const formRef = useRef(null);
   const textareaRef = useRef(null);
-  const [_, setFocused] = useState(false);
+  // 종전에는 값을 버리고(`[_, setFocused]`) 리렌더 트리거로만 썼다. 포커스 테두리를
+  // 그리려면 값 자체가 필요해 이름을 붙였다.
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     if (!inputDisabled && textareaRef.current) {
@@ -56,9 +58,20 @@ export default function PromptInput({
       >
         <div className="allm-flex allm-items-center allm-w-full">
           <div className="allm-bg-white allm-flex allm-flex-col allm-px-4 allm-overflow-hidden allm-w-full">
+            {/* 포커스가 갔는지 테두리로 알린다. 종전에는 focus:outline-none만 걸려 있어
+                커서가 어디 있는지 시각 단서가 전혀 없었다. 강조색은 호스트가 넘긴
+                buttonColor를 그대로 써서 사이트 톤을 따라간다. */}
             <div
-              style={{ border: "1.5px solid #22262833" }}
-              className="allm-flex allm-items-center allm-w-full allm-rounded-2xl"
+              style={{
+                border: focused
+                  ? `1.5px solid ${settings.buttonColor || "#0EA5E9"}`
+                  : "1.5px solid #22262833",
+                boxShadow: focused
+                  ? `0 0 0 3px ${settings.buttonColor || "#222628"}1A`
+                  : "none",
+                transition: "border-color 120ms ease, box-shadow 120ms ease",
+              }}
+              className="allm-flex allm-items-center allm-w-full allm-rounded-2xl allm-bg-white"
             >
               <textarea
                 ref={textareaRef}
@@ -88,9 +101,16 @@ export default function PromptInput({
                 {buttonDisabled ? (
                   <CircleNotch className="allm-w-4 allm-h-4 allm-animate-spin" />
                 ) : (
+                  // 입력이 있을 때만 강조색으로 살린다 — 빈 상태에서 밝게 두면
+                  // 누를 수 있는 것처럼 보여 헛클릭을 부른다.
                   <PaperPlaneRight
                     size={24}
-                    className="allm-my-3 allm-text-[#22262899]/60 group-hover:allm-text-[#22262899]/90"
+                    style={message?.length ? { color: settings.buttonColor } : undefined}
+                    className={`allm-my-3 allm-transition-colors ${
+                      message?.length
+                        ? "allm-opacity-100"
+                        : "allm-text-[#22262899]/40 group-hover:allm-text-[#22262899]/70"
+                    }`}
                     weight="fill"
                   />
                 )}

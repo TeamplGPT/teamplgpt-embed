@@ -23,6 +23,12 @@ const DEFAULT_SETTINGS = {
   sponsorLink: "https://anythingllm.com", // default sponsor link
   position: "bottom-right", // position of chat button/window
   assistantName: "AnythingLLM Chat Assistant", // default assistant name
+  // 헤더 이름 아래 한 줄. 무엇을 물어봐도 되는 창인지 알려준다("인사·노무 상담" 등).
+  // 지정하지 않으면 줄 자체를 그리지 않는다 — 빈 줄이 남으면 오히려 헤더가 헐거워 보인다.
+  assistantSubtitle: null,
+  // 헤더 바탕색. 미지정 시 컴포넌트 기본값(짙은 네이비)을 쓴다. buttonColor와 분리한 이유는
+  // 플로팅 버튼은 밝은 강조색, 헤더는 짙은 색이라야 각자 제 역할을 하기 때문이다.
+  headerColor: null,
   assistantIcon: null, // default assistant icon
   windowHeight: null, // height of chat window in number:css-prefix
   windowWidth: null, // width of chat window in number:css-prefix

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI 상담 위젯 — 로컬 소스 미리보기</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+    background: #f7f9fe;
+    color: #1b2434;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+  .box { max-width: 520px; text-align: center; }
+  h1 { font-size: 20px; margin: 0 0 10px; }
+  p { color: #47536b; font-size: 14.5px; line-height: 1.6; }
+  code { background: #eef1f6; border-radius: 4px; padding: 2px 6px; font-size: 13px; }
+  .badge {
+    display: inline-block; margin-bottom: 14px; padding: 4px 10px; border-radius: 999px;
+    background: #4F46E5; color: #fff; font-size: 12px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="badge">로컬 소스 (embed/src)</div>
+    <h1>AI 상담 위젯 미리보기</h1>
+    <p>
+      notion-cms/themes/labor에 붙인 것과 <strong>동일한 설정</strong>이지만, 위젯 스크립트는
+      <code>/dist/anythingllm-chat-widget.js</code> — 즉 <strong>로컬 소스 빌드본</strong>을 씁니다.
+      <code>embed/src</code>를 고치면 <code>yarn dev</code>가 다시 빌드하므로 새로고침만 하면 반영됩니다.
+    </p>
+    <p>
+      배포본과 비교하려면 <code>127.0.0.1:8000/ai-chat-widget-preview.html</code>을 나란히 띄우세요.
+    </p>
+  </div>
+
+<!--
+  notion-cms/themes/labor/components/AiChatWidget.js가 주입하는 속성과 동일하게 유지할 것.
+  달라지면 여기서 괜찮아 보여도 실제 사이트에서 다르게 보인다.
+  API는 실서버(demo)를 그대로 쓴다 — 렌더뿐 아니라 실제 대화까지 확인하기 위해서다.
+-->
+<script
+  data-embed-id="5d7547e4-82e9-4f26-b3b9-47a28ea116cb"
+  data-base-api-url="https://demo.teamplgpt.com/api/embed"
+  data-button-color="#0EA5E9"
+  data-user-bg-color="#0EA5E9"
+  data-assistant-bg-color="#F8FAFC"
+  data-position="bottom-left"
+  data-chat-icon="support"
+  data-assistant-name="Insa Team AI 상담원"
+  data-assistant-subtitle="인사·노무 상담"
+  data-brand-image-url="/ai-assistant-icon.png"
+  data-assistant-icon="/ai-assistant-icon.png"
+  data-greeting="안녕하세요! 인사·노무 관련 궁금한 점을 물어보세요."
+  data-default-messages="퇴직금 계산 방법,연차수당은 어떻게 계산하나요?,부당해고 대응 절차,4대보험 취득 신고"
+  data-send-message-text="퇴직금, 연차수당, 부당해고... 무엇이든 물어보세요"
+  data-reset-chat-text="대화 초기화"
+  data-text-size="16"
+  data-window-width="380px"
+  data-window-height="600px"
+  data-no-sponsor="true"
+  src="/dist/anythingllm-chat-widget.js"
+></script>
+</body>
+</html>
