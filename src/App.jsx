@@ -7,6 +7,7 @@ import ChatWindow from "./components/ChatWindow";
 import { useEffect } from "react";
 import { I18nextProvider } from "react-i18next";
 import i18next from "@/i18n";
+import { THEME } from "@/utils/theme";
 
 export default function App() {
   const { isChatOpen, toggleOpenChat } = useOpenChat();
@@ -44,8 +45,10 @@ export default function App() {
             maxWidth: windowWidth,
             maxHeight: windowHeight,
             height: "100%",
+            border: `1px solid ${THEME.border}`,
+            boxShadow: THEME.shadow.window,
           }}
-          className={`allm-h-full allm-w-full allm-bg-white allm-fixed allm-bottom-0 allm-right-0 allm-mb-4 allm-md:mr-4 allm-rounded-2xl allm-border allm-border-gray-300 allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)] allm-flex allm-flex-col ${positionClasses[position]}`}
+          className={`allm-h-full allm-w-full allm-bg-white allm-fixed allm-bottom-0 allm-right-0 allm-mb-4 allm-md:mr-4 allm-rounded-2xl allm-overflow-hidden allm-box-border allm-flex allm-flex-col ${positionClasses[position]}`}
           id="anything-llm-chat"
         >
           {isChatOpen && (

@@ -15,6 +15,9 @@ const scriptSettings = Object.assign(
 
 export const embedderSettings = {
   settings: scriptSettings,
+  // 이 위젯을 붙인 스크립트 태그. 사이트가 화면을 옮기며 data-default-messages를 바꾸면
+  // useScriptAttributes가 지켜보다 칩만 새로 그린다(insa.team 2026-11-25)
+  scriptElement: document?.currentScript || null,
   stylesSrc: parseStylesSrc(document?.currentScript?.src),
   USER_STYLES: {
     msgBg: scriptSettings?.userBgColor ?? "#3DBEF5",

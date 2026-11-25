@@ -1,10 +1,18 @@
 import HistoricalMessage from "./HistoricalMessage";
 import PromptReply from "./PromptReply";
+import { BotBubble } from "./Bubble";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, CircleNotch } from "@phosphor-icons/react";
-import { embedderSettings } from "@/main";
 import debounce from "lodash.debounce";
 import { SEND_TEXT_EVENT } from "..";
+import { THEME, accentOf } from "@/utils/theme";
+
+// 대화 스레드 칸 — okrservice 챗봇처럼 옅은 바탕 위에 말풍선을 10px 간격으로 쌓는다
+const THREAD_STYLE = {
+  background: THEME.threadBackground,
+  padding: "16px 16px 8px",
+  gap: "10px",
+};
 
 export default function ChatHistory({ settings = {}, history = [] }) {
   const replyRef = useRef(null);
@@ -47,25 +55,27 @@ export default function ChatHistory({ settings = {}, history = [] }) {
   };
 
   if (history.length === 0) {
+    // okrservice 챗봇 첫 화면처럼 인사 말풍선 바로 아래에 예시 질문을 둔다.
+    // 무엇을 물어볼지 모를 때 인사를 읽은 눈이 그대로 질문으로 내려온다.
     return (
-      <div className="allm-h-full allm-overflow-y-auto allm-px-2 allm-py-4 allm-flex allm-flex-col allm-justify-start allm-no-scroll">
-        <div className="allm-flex allm-h-full allm-flex-col allm-items-center allm-justify-center">
-          <p className="allm-text-slate-400 allm-text-sm allm-font-sans allm-py-4 allm-text-center">
-            {settings?.greeting ?? "Send a chat to get started."}
-          </p>
-          <SuggestedMessages settings={settings} />
-        </div>
+      <div
+        style={THREAD_STYLE}
+        className="allm-h-full allm-overflow-y-auto allm-flex allm-flex-col allm-no-scroll"
+      >
+        <GreetingMessage settings={settings} />
+        <SuggestedMessages settings={settings} />
       </div>
     );
   }
 
   return (
     <div
-      className="allm-h-full allm-overflow-y-auto allm-px-2 allm-pt-4 allm-pb-8 allm-flex allm-flex-col allm-justify-start allm-no-scroll"
+      style={THREAD_STYLE}
+      className="allm-h-full allm-overflow-y-auto allm-flex allm-flex-col allm-justify-start allm-no-scroll"
       id="chat-history"
       ref={chatHistoryRef}
     >
-      <div className="allm-flex allm-flex-col allm-gap-y-4">
+      <div className="allm-flex allm-flex-col" style={{ gap: "10px" }}>
         {history.map((props, index) => {
           const isLastMessage = index === history.length - 1;
           const isLastBotReply =
@@ -103,12 +113,20 @@ export default function ChatHistory({ settings = {}, history = [] }) {
         })}
       </div>
       {!isAtBottom && (
-        <div className="allm-fixed allm-bottom-[10rem] allm-right-[50px] allm-z-50 allm-cursor-pointer allm-animate-pulse">
+        <div className="allm-fixed allm-bottom-[10rem] allm-right-[50px] allm-z-50 allm-cursor-pointer">
           <div className="allm-flex allm-flex-col allm-items-center">
-            <div className="allm-rounded-full allm-border allm-border-white/10 allm-bg-black/20 hover:allm-bg-black/50 allm-w-8 allm-h-8 allm-flex allm-items-center allm-justify-center">
+            <div
+              style={{
+                background: THEME.card,
+                border: `1px solid ${THEME.border}`,
+                boxShadow: THEME.shadow.subtle,
+                color: THEME.muted,
+              }}
+              className="allm-rounded-full allm-w-8 allm-h-8 allm-flex allm-items-center allm-justify-center"
+            >
               <ArrowDown
                 weight="bold"
-                className="allm-text-white/50 allm-w-4 allm-h-4"
+                className="allm-w-4 allm-h-4"
                 onClick={scrollToBottom}
                 id="scroll-to-bottom-button"
                 aria-label="Scroll to bottom"
@@ -136,31 +154,88 @@ export function ChatHistoryLoading() {
   );
 }
 
+/**
+ * 대화 시작 전 인사말. 첫 화면이 곧 "상담원이 먼저 말을 건 상태"로 읽혀야 무엇을 하는
+ * 창인지 전달된다. 실제 답변과 같은 말풍선을 쓴다.
+ */
+function GreetingMessage({ settings }) {
+  const greeting = settings?.greeting ?? "Send a chat to get started.";
+  return <BotBubble>{greeting}</BotBubble>;
+}
+
+/**
+ * 예시 질문 — okrservice 챗봇의 "이런 걸 물어볼 수 있어요" 칩.
+ * 눌러서 보내는 것이므로 말풍선이 아니라 알약 모양 칩이다. 평소에는 옅은 테두리,
+ * 마우스를 올리면 테두리만 강조색으로 바뀐다. 제목 줄은 data-suggestions-label이
+ * 있을 때만 그린다.
+ */
 function SuggestedMessages({ settings }) {
   if (!settings?.defaultMessages?.length) return null;
+  const label = settings.suggestionsLabel;
 
   return (
-    <div className="allm-flex allm-flex-col allm-gap-y-2 allm-w-[75%]">
-      {settings.defaultMessages.map((content, i) => (
-        <button
-          key={i}
+    <div
+      role="group"
+      aria-label={label || undefined}
+      className="allm-flex allm-flex-col"
+      style={{ gap: "8px", marginTop: "4px" }}
+    >
+      {label && (
+        <div
           style={{
-            opacity: 0,
-            wordBreak: "break-word",
-            backgroundColor: embedderSettings.USER_STYLES.msgBg,
-            fontSize: settings.textSize,
+            padding: "0 2px",
+            fontSize: "11.5px",
+            fontWeight: 700,
+            color: THEME.muted,
           }}
-          type="button"
-          onClick={() => {
-            window.dispatchEvent(
-              new CustomEvent(SEND_TEXT_EVENT, { detail: { command: content } })
-            );
-          }}
-          className={`msg-suggestion allm-border-none hover:allm-shadow-[0_4px_14px_rgba(0,0,0,0.5)] allm-cursor-pointer allm-px-2 allm-py-2 allm-rounded-lg allm-text-white allm-w-full allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)]`}
+          className="allm-font-sans"
         >
-          {content}
-        </button>
-      ))}
+          {label}
+        </div>
+      )}
+      <div className="allm-flex allm-flex-wrap" style={{ gap: "6px" }}>
+        {settings.defaultMessages.map((content, i) => (
+          <SuggestionChip
+            key={i}
+            index={i}
+            content={content}
+            accent={accentOf(settings)}
+          />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function SuggestionChip({ index, content, accent }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        window.dispatchEvent(
+          new CustomEvent(SEND_TEXT_EVENT, { detail: { command: content } })
+        );
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        opacity: 0,
+        animationDelay: `${index * 60}ms`,
+        padding: "6px 11px",
+        border: `1px solid ${hovered ? accent : THEME.chipBorder}`,
+        borderRadius: "999px",
+        background: THEME.card,
+        color: THEME.chipText,
+        fontSize: "12.5px",
+        lineHeight: 1.35,
+        textAlign: "left",
+        wordBreak: "keep-all",
+        transition: "border-color 0.15s ease",
+      }}
+      className="msg-suggestion allm-cursor-pointer allm-font-sans"
+    >
+      {content}
+    </button>
   );
 }
