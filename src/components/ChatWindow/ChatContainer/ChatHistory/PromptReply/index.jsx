@@ -2,8 +2,7 @@ import { forwardRef, memo, useState } from "react";
 import { Warning, CircleNotch, CaretDown } from "@phosphor-icons/react";
 import renderMarkdown from "@/utils/chat/markdown";
 import { embedderSettings } from "@/main";
-import AnythingLLMIcon from "@/assets/anything-llm-icon.svg";
-import { formatDate } from "@/utils/date";
+import { BotBubble, ErrorBubble, MessageColumn, MessageTime } from "../Bubble";
 
 const ThinkingIndicator = ({ hasThought }) => {
   if (hasThought) {
@@ -70,7 +69,6 @@ const PromptReply = forwardRef(
           .trim()
       : null;
 
-    const lastThought = streamingThought || thoughts[thoughts.length - 1];
     const isThinking = hasIncompleteThinkTag || pending;
 
     // Get the response content without the think tags - clean more aggressively
@@ -82,102 +80,47 @@ const PromptReply = forwardRef(
 
     if (isThinking) {
       return (
-        <div className="allm-py-[5px]">
-          <div className="allm-text-[10px] allm-text-gray-400 allm-ml-[54px] allm-mr-6 allm-mb-2 allm-text-left allm-font-sans">
-            {embedderSettings.settings.assistantName ||
-              "Anything LLM Chat Assistant"}
-          </div>
-          <div className="allm-flex allm-items-start allm-w-full allm-h-fit allm-justify-start">
-            <img
-              src={embedderSettings.settings.assistantIcon || AnythingLLMIcon}
-              alt="Anything LLM Icon"
-              className="allm-w-9 allm-h-9 allm-flex-shrink-0 allm-ml-2"
-            />
-            <div
-              style={{
-                wordBreak: "break-word",
-                backgroundColor: embedderSettings.ASSISTANT_STYLES.msgBg,
-              }}
-              className={`allm-py-[11px] allm-px-4 allm-flex allm-flex-col ${embedderSettings.ASSISTANT_STYLES.base} allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)]`}
-            >
-              {hasIncompleteThinkTag && streamingThought && (
-                <ThoughtBubble thought={streamingThought} />
-              )}
-              <ThinkingIndicator hasThought={hasIncompleteThinkTag} />
-            </div>
-          </div>
-        </div>
+        <MessageColumn>
+          <BotBubble ref={ref}>
+            {hasIncompleteThinkTag && streamingThought && (
+              <ThoughtBubble thought={streamingThought} />
+            )}
+            <ThinkingIndicator hasThought={hasIncompleteThinkTag} />
+          </BotBubble>
+        </MessageColumn>
       );
     }
 
     if (error) {
       return (
-        <div className="allm-py-[5px]">
-          <div className="allm-text-[10px] allm-text-gray-400 allm-ml-[54px] allm-mr-6 allm-mb-2 allm-text-left allm-font-sans">
-            {embedderSettings.settings.assistantName ||
-              "Anything LLM Chat Assistant"}
-          </div>
-          <div className="allm-flex allm-items-start allm-w-full allm-h-fit allm-justify-start">
-            <img
-              src={embedderSettings.settings.assistantIcon || AnythingLLMIcon}
-              alt="Anything LLM Icon"
-              className="allm-w-9 allm-h-9 allm-flex-shrink-0 allm-ml-2"
-            />
-            <div className="allm-py-[11px] allm-px-4 allm-rounded-lg allm-flex allm-flex-col allm-bg-red-200 allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)] allm-mr-[37px] allm-ml-[9px]">
-              <div className="allm-flex allm-gap-x-5">
-                <span className="allm-inline-block allm-p-2 allm-rounded-lg allm-bg-red-50 allm-text-red-500">
-                  <Warning className="allm-h-4 allm-w-4 allm-mb-1 allm-inline-block" />{" "}
-                  Could not respond to message.
-                  <span className="allm-text-xs">Server error</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MessageColumn>
+          <ErrorBubble ref={ref}>
+            <span className="allm-inline-flex allm-items-center allm-gap-x-1">
+              <Warning className="allm-h-4 allm-w-4" />
+              Could not respond to message.
+            </span>
+            <span className="allm-text-xs">Server error</span>
+          </ErrorBubble>
+        </MessageColumn>
       );
     }
 
     return (
-      <div className="allm-py-[5px]">
-        <div className="allm-text-[10px] allm-text-gray-400 allm-ml-[54px] allm-mr-6 allm-mb-2 allm-text-left allm-font-sans">
-          {embedderSettings.settings.assistantName ||
-            "Anything LLM Chat Assistant"}
-        </div>
-        <div
-          key={uuid}
-          ref={ref}
-          className="allm-flex allm-items-start allm-w-full allm-h-fit allm-justify-start"
-        >
-          <img
-            src={embedderSettings.settings.assistantIcon || AnythingLLMIcon}
-            alt="Anything LLM Icon"
-            className="allm-w-9 allm-h-9 allm-flex-shrink-0 allm-ml-2"
-          />
-          <div
-            style={{
-              wordBreak: "break-word",
-              backgroundColor: embedderSettings.ASSISTANT_STYLES.msgBg,
-            }}
-            className={`allm-py-[11px] allm-px-4 allm-flex allm-flex-col ${embedderSettings.ASSISTANT_STYLES.base} allm-shadow-[0_4px_14px_rgba(0,0,0,0.25)]`}
-          >
+      <div key={uuid}>
+        <MessageColumn>
+          <BotBubble ref={ref}>
             {thoughts.length > 0 && (
               <ThoughtBubble thought={thoughts.join("\n\n")} />
             )}
-            <div className="allm-flex allm-gap-x-5">
-              <span
-                className="allm-font-sans allm-reply allm-whitespace-pre-line allm-font-normal allm-text-sm allm-md:text-sm allm-flex allm-flex-col allm-gap-y-1"
-                dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(responseContent || ""),
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        {sentAt && (
-          <div className="allm-text-[10px] allm-text-gray-400 allm-ml-[54px] allm-mr-6 allm-mt-2 allm-text-left allm-font-sans">
-            {formatDate(sentAt)}
-          </div>
-        )}
+            <span
+              className="allm-reply allm-whitespace-pre-line allm-font-normal allm-flex allm-flex-col allm-gap-y-1"
+              dangerouslySetInnerHTML={{
+                __html: renderMarkdown(responseContent || ""),
+              }}
+            />
+          </BotBubble>
+          <MessageTime sentAt={sentAt} />
+        </MessageColumn>
       </div>
     );
   }
